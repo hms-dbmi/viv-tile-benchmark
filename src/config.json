@@ -21,7 +21,7 @@
           "id": "some-unique-id",
           "xCoord": 0, 
           "yCoord": 0, 
-          "zoom": -2,
+          "zoom": -4,
           "viewports": [[300, 400], [1000, 1000]],
           "numChannels": [1, 2, 3, 4]
         }
