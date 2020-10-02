@@ -1,5 +1,5 @@
-// This is a vendored version of the deck.gl tile utils that gives not only indices
-// of the current zoom level, but all those up to the 0th one as well.
+// This is a vendored version of the deck.gl tile utils that gives tile indices
+// of the current zoom level.
 
 import { OrthographicView } from "@deck.gl/core";
 
@@ -66,19 +66,17 @@ function getIdentityTileIndices(viewport, z, extent) {
  * return tiles that are on maxZoom.
  */
 export function getTileIndices({ viewState, extent, tileSize, height, width }) {
-  const { zoom: originalZoom } = viewState;
+  const { zoom } = viewState;
   const tiles = [];
-  for (let zoom = originalZoom; zoom <= 0; zoom++) {
-    const newViewState = { ...viewState, zoom };
-    const viewport = new OrthographicView({ ...newViewState }).makeViewport({
-      width,
-      height,
-      viewState: newViewState,
-    });
-    let z = Math.round(zoom + Math.log2(TILE_SIZE / tileSize));
-    tiles.push(
-      ...getIdentityTileIndices(viewport, z, extent || DEFAULT_EXTENT)
-    );
-  }
+  const newViewState = { ...viewState, zoom };
+  const viewport = new OrthographicView({ ...newViewState }).makeViewport({
+    width,
+    height,
+    viewState: newViewState,
+  });
+  let z = Math.round(zoom + Math.log2(TILE_SIZE / tileSize));
+  tiles.push(
+    ...getIdentityTileIndices(viewport, z, extent || DEFAULT_EXTENT)
+  );
   return tiles;
 };

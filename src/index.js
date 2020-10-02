@@ -16,9 +16,23 @@ async function getLoader({ url, format }) {
 }
 
 function getTileCoords(props) {
-  const { xCoord, yCoord, width, height, zoom, tileSize, extent } = props;
-  const viewState = { target: [xCoord, yCoord], zoom }
-  return getTileIndices({ viewState, width, height, tileSize, extent });
+  const {
+    xCoord,
+    yCoord,
+    width,
+    height,
+    zoom: originalZoom,
+    tileSize,
+    extent,
+  } = props;
+  const tileIndices = []
+  for (let zoom = originalZoom; zoom <= 0; zoom++) {
+    const viewState = { target: [xCoord, yCoord], zoom };
+    tileIndices.push(
+      ...getTileIndices({ viewState, width, height, tileSize, extent })
+    );
+  }
+  return tileIndices;
 }
 
 async function timeRegions({ file, sources, regions }) {
