@@ -3,7 +3,7 @@ import { images } from './test_config.json';
 import { getTileIndices } from "./vendored-utils";
 async function timeGetTile(loader, { x, y, z, loaderSelection }) {
   const start = performance.now()
-  await loader.getTile({ x, y, z: -z, loaderSelection });
+  await loader.getTile({ x, y, z, loaderSelection });
   const end = performance.now();
   return [start, end];
 }
@@ -25,14 +25,21 @@ function getTileCoords(props) {
     tileSize,
     extent,
   } = props;
-  const tileIndices = []
+  const tileIndices = [];
   for (let zoom = originalZoom; zoom <= 0; zoom++) {
     const viewState = { target: [xCoord, yCoord], zoom };
     tileIndices.push(
       ...getTileIndices({ viewState, width, height, tileSize, extent })
     );
   }
-  return tileIndices;
+  // See https://github.com/visgl/deck.gl/pull/4616/files#diff-4d6a2e500c0e79e12e562c4f1217dc80R128
+  // and https://github.com/hms-dbmi/viv/blob/db6f08a14f4d49590c49ea6ca23055782dcab29a/src/layers/MultiscaleImageLayer/MultiscaleImageLayer.js#L88-L94
+  const correctedIndices = tileIndices.map((tile) => ({
+    x: tile.x,
+    y: tile.y,
+    z: Math.round(-tile.z + Math.log2(512 / tileSize)),
+  }));
+  return correctedIndices;
 }
 
 async function timeRegions({ file, sources, regions }) {
@@ -61,18 +68,19 @@ async function timeRegions({ file, sources, regions }) {
               file,
               format,
               compression,
-              zoom,
+              // The zoom level is the z, not the provided one.
+              zoom: -z,
               tileSize,
               regionId: id,
-              yCoord, 
-              xCoord, 
+              yCoord,
+              xCoord,
               height,
               width,
               numChannels: n,
               tileId: `${x}-${y}-${z}`,
               startTime: start,
               endTime: end,
-            }
+            };
           });
           console.table(records);
           console.debug(JSON.stringify(records));
