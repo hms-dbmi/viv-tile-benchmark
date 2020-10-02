@@ -3,7 +3,7 @@ import { images } from './test_config.json';
 import { getTileIndices } from "./vendored-utils";
 async function timeGetTile(loader, { x, y, z, loaderSelection }) {
   const start = performance.now()
-  await loader.getTile({ x, y, z, loaderSelection });
+  await loader.getTile({ x, y, z: -z, loaderSelection });
   const end = performance.now();
   return [start, end];
 }
@@ -12,7 +12,6 @@ async function getLoader({ url, format }) {
   if (format === 'zarr') {
     return createBioformatsZarrLoader({ url });
   }
-  console.log(url)
   return createOMETiffLoader({ urlOrFile: url });
 }
 
