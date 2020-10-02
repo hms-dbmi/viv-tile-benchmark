@@ -13,9 +13,9 @@
       "regions": [
         { 
           "id": "some-unique-id",
-          "left": 0, 
-          "top": 0, 
-          "zoomLevels": [0, 1, 2],
+          "xCoord": 0, 
+          "yCoord": 0, 
+          "zoom": -5,
           "viewports": [[300, 400], [1000, 1000]],
           "numChannels": [1, 2, 3, 4]
         }
