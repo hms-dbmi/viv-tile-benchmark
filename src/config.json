@@ -1,0 +1,31 @@
+{
+  "images": [
+    {
+      "file": "original_file_name.img",
+      "sources": [
+        {
+          "url": "https://storage.googleapis.com/viv-demo/LuCa-7color_Scan1/",
+          "format": "zarr",
+          "compression": "blosc",
+          "tileSize": 1024
+        },
+        {
+          "url": "https://storage.googleapis.com/viv-demo/Vanderbilt-Spraggins-Kidney-MxIF.ome.tif",
+          "format": "OME-TIFF",
+          "compression": "gzip",
+          "tileSize": 512
+        }
+      ],
+      "regions": [
+        { 
+          "id": "some-unique-id",
+          "left": 0, 
+          "top": 0, 
+          "zoomLevels": [0, 1, 2],
+          "viewports": [[300, 400], [1000, 1000]],
+          "numChannels": [1, 2, 3, 4]
+        }
+      ]
+    }
+  ]
+}
