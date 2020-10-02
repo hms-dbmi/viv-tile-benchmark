@@ -12,7 +12,7 @@ async function getLoader({ url, format }) {
   if (format === 'zarr') {
     return createBioformatsZarrLoader({ url });
   }
-  return createOMETiffLoader({ urlOrFile: url });
+  return createOMETiffLoader({ url });
 }
 
 function getTileCoords(props) {
