@@ -36,6 +36,6 @@ async function run(outfile, config = {}) {
   })
 }
 
-run('./chrome_http2.csv');
-run('./chrome_http1.csv', { args: ["--disable-http2"] });
+run('./chrome_http2.csv', { ignoreHTTPSErrors: true });
+run('./chrome_http1.csv', { args: ["--disable-http2"], ignoreHTTPSErrors: true });
 
