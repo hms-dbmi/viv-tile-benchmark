@@ -17,11 +17,12 @@ async function run(outfile, config = {}) {
 
   let first = false;
   page.on('console', async msg => {
-    if (msg.type() === 'timeEnd') {
+    const type = msg.type();
+    if (type === 'timeEnd') {
       stream.end();
       await browser.close();
     }
-    if (msg.type() === 'debug') {
+    if (type === 'debug') {
       const records = JSON.parse(msg.text());
       if (!first) {
         const headers = Object.keys(records[0]).join(',');
@@ -36,6 +37,14 @@ async function run(outfile, config = {}) {
   })
 }
 
-run('./chrome_http2.csv');
-run('./chrome_http1.csv', { args: ["--disable-http2"] });
+function main() {
+  const args = process.argv.slice(2);
+  if (args.length < 1) {
+    console.log("./benchmark.js <filename> [options]")
+    process.exit(1);
+  }
+  const outfile = args[0];
+  run(outfile, { args: args.slice(1) });
+}
 
+main();
