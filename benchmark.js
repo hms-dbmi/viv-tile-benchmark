@@ -42,11 +42,14 @@ async function run(outfile, config = {}) {
 function main() {
   const args = process.argv.slice(2);
   if (args.length < 1) {
-    console.log("./benchmark.js <filename> [chrome_flags]")
+    console.log("./benchmark.js <filename> [--no-headless] [--ignore-http-errors] [chrome_flags]")
     process.exit(1);
   }
   const outfile = args[0];
-  run(outfile, { args: args.slice(1) });
+  const flags = new Set(args.slice(1));
+  const headless = !flags.delete('--no-headless');
+  const ignoreHTTPErrors = flags.delete('--ignore-http-errors');
+  run(outfile, { headless, ignoreHTTPErrors, args: [...flags] });
 }
 
 main();
