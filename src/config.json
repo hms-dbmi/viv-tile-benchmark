@@ -1,28 +1,80 @@
 {
   "images": [
     {
-      "file": "original_file_name.img",
+      "file": "Vanderbilt-Spraggins-Image",
       "sources": [
         {
-          "url": "https://storage.googleapis.com/viv-demo/LuCa-7color_Scan1/",
+          "url": "https://http2.viv.vitessce.io/spraggins_1024/",
           "format": "zarr",
           "compression": "blosc",
           "tileSize": 1024
         },
         {
-          "url": "https://storage.googleapis.com/viv-demo/Vanderbilt-Spraggins-Kidney-MxIF.ome.tif",
+          "url": "https://http2.viv.vitessce.io/spraggins_1024_zlib.ome.tif",
           "format": "OME-TIFF",
-          "compression": "gzip",
+          "compression": "zlib",
+          "tileSize": 1024
+        },
+        {
+          "url": "https://http2.viv.vitessce.io/spraggins_512/",
+          "format": "zarr",
+          "compression": "blosc",
           "tileSize": 512
+        },
+        {
+          "url": "https://http2.viv.vitessce.io/spraggins_512_zlib.ome.tif",
+          "format": "OME-TIFF",
+          "compression": "zlib",
+          "tileSize": 512
+        },
+        {
+          "url": "https://http2.viv.vitessce.io/spraggins_256/",
+          "format": "zarr",
+          "compression": "blosc",
+          "tileSize": 256
+        },
+        {
+          "url": "https://http2.viv.vitessce.io/spraggins_256_zlib.ome.tif",
+          "format": "OME-TIFF",
+          "compression": "zlib",
+          "tileSize": 256
         }
       ],
       "regions": [
         { 
-          "id": "some-unique-id",
-          "xCoord": 0, 
-          "yCoord": 0, 
+          "id": "Zoomed In",
+          "xCoord": 10000, 
+          "yCoord": 10000, 
           "zoom": -4,
-          "viewports": [[300, 400], [1000, 1000]],
+          "viewports": [[300, 400], [1000, 1000], [1920, 1080]],
+          "numChannels": [1, 2, 3, 4]
+        },
+        { 
+          "id": "Zoomed Out",
+          "xCoord": 20000, 
+          "yCoord": 20000, 
+          "zoom": -7,
+          "viewports": [[300, 400], [1000, 1000], [1920, 1080]],
+          "numChannels": [1, 2, 3, 4]
+        },
+        {
+          "id": "Zoomed In 2",
+          "xCoord": 15000,
+          "yCoord": 15000,
+          "zoom": -3,
+          "viewports": [
+            [300, 400],
+            [1000, 1000],
+            [1920, 1080]
+          ],
+          "numChannels": [1, 2, 3, 4]
+        },
+        { 
+          "id": "Zoomed Out 2",
+          "xCoord": 25000, 
+          "yCoord": 10000, 
+          "zoom": -8,
+          "viewports": [[300, 400], [1000, 1000], [1920, 1080]],
           "numChannels": [1, 2, 3, 4]
         }
       ]

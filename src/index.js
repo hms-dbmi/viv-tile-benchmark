@@ -1,5 +1,6 @@
 import { range, timeGetTile, getTileCoords, getLoader } from './utils';
 import { images } from './config.json';
+import PQueue from 'p-queue';
 
 const ITERS = 10;
 
@@ -27,31 +28,34 @@ async function timeRegions({ file, sources, regions }, iter) {
             tileSize,
             extent,
           });
-          const p = tileCoords.map(t => timeGetTile(loader, { ...t, loaderSelection }));
-          const times = await Promise.all(p); // await all requests
-
-          // Create summary of output 
-          const records = times.map(([start, end], i) => {
-            const { x, y, z } = tileCoords[i];
-            return {
-              iter,
-              file,
-              format,
-              compression,
-              // The zoom level is the z, not the provided one.
-              zoom: -z,
-              tileSize,
-              regionId: id,
-              yCoord,
-              xCoord,
-              height,
-              width,
-              numChannels: n,
-              tileId: `${x}-${y}-${z}`,
-              startTime: start,
-              endTime: end,
-            };
-          });
+          const queue = new PQueue({ concurrency: 10 });
+          const records = []
+          for (const t of tileCoords) {
+            queue.add(async () => {
+              const [start, end] = await timeGetTile(loader, { ...t, loaderSelection });
+              const { x, y, z } = t;
+              const record = {
+                iter,
+                file,
+                format,
+                compression,
+                // The zoom level is the z, not the provided one.
+                zoom: -z,
+                tileSize,
+                regionId: id,
+                yCoord,
+                xCoord,
+                height,
+                width,
+                numChannels: n,
+                tileId: `${x}-${y}-${z}`,
+                startTime: start,
+                endTime: end,
+              };
+              records.push(record);
+            })
+          }
+          await queue.onIdle();
           console.table(records);
           console.debug(JSON.stringify(records));
         }
