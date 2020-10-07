@@ -1,7 +1,6 @@
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 
-
 const url = `file://${__dirname}/build/index.html`;
 
 async function run(outfile, config = {}) {
@@ -36,6 +35,21 @@ async function run(outfile, config = {}) {
   })
 }
 
-run('./chrome_http2.csv', { ignoreHTTPSErrors: true });
-run('./chrome_http1.csv', { args: ["--disable-http2"], ignoreHTTPSErrors: true });
-
+const myArgs = process.argv.slice(2);
+const [useHttp2] = myArgs;
+switch (useHttp2) {
+  case "--use-http2":
+    run("./chrome_http2.csv", {
+      headless: false,
+      args: ["--auto-open-devtools-for-tabs"],
+      ignoreHTTPSErrors: true,
+    });
+    break;
+  case "--use-http1":
+    run("./chrome_http1.csv", {
+      headless: false,
+      args: ["--auto-open-devtools-for-tabs", "--disable-http2"],
+      ignoreHTTPSErrors: true,
+    });
+    break;
+}
