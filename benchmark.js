@@ -42,7 +42,7 @@ async function run(outfile, config = {}) {
 function main() {
   const args = process.argv.slice(2);
   if (args.length < 1) {
-    console.log("./benchmark.js <filename> [options]")
+    console.log("./benchmark.js <filename> [chrome_flags]")
     process.exit(1);
   }
   const outfile = args[0];
