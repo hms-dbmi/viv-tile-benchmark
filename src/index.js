@@ -1,5 +1,6 @@
 import { range, timeGetTile, getTileCoords, getLoader } from './utils';
 import { images } from './config.json';
+import PQueue from 'p-queue';
 
 const ITERS = 10;
 
@@ -27,7 +28,13 @@ async function timeRegions({ file, sources, regions }, iter) {
             tileSize,
             extent,
           });
-          const p = tileCoords.map(t => timeGetTile(loader, { ...t, loaderSelection }));
+          const queue = new PQueue({ concurrency: 10 });
+          const p = []
+          for (const t of tileCoords) {
+            p.push(queue.add(() => timeGetTile(loader, { ...t, loaderSelection })));
+          }
+          // guarantees that all work on queue has finished
+          await queue.onIdle();
           const times = await Promise.all(p); // await all requests
 
           // Create summary of output 
