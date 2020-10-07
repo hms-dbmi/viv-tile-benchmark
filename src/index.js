@@ -29,36 +29,33 @@ async function timeRegions({ file, sources, regions }, iter) {
             extent,
           });
           const queue = new PQueue({ concurrency: 10 });
-          const p = []
+          const records = []
           for (const t of tileCoords) {
-            p.push(queue.add(() => timeGetTile(loader, { ...t, loaderSelection })));
+            queue.add(async () => {
+              const [start, end] = await timeGetTile(loader, { ...t, loaderSelection });
+              const { x, y, z } = t;
+              const record = {
+                iter,
+                file,
+                format,
+                compression,
+                // The zoom level is the z, not the provided one.
+                zoom: -z,
+                tileSize,
+                regionId: id,
+                yCoord,
+                xCoord,
+                height,
+                width,
+                numChannels: n,
+                tileId: `${x}-${y}-${z}`,
+                startTime: start,
+                endTime: end,
+              };
+              records.push(record);
+            })
           }
-          // guarantees that all work on queue has finished
           await queue.onIdle();
-          const times = await Promise.all(p); // await all requests
-
-          // Create summary of output 
-          const records = times.map(([start, end], i) => {
-            const { x, y, z } = tileCoords[i];
-            return {
-              iter,
-              file,
-              format,
-              compression,
-              // The zoom level is the z, not the provided one.
-              zoom: -z,
-              tileSize,
-              regionId: id,
-              yCoord,
-              xCoord,
-              height,
-              width,
-              numChannels: n,
-              tileId: `${x}-${y}-${z}`,
-              startTime: start,
-              endTime: end,
-            };
-          });
           console.table(records);
           console.debug(JSON.stringify(records));
         }
