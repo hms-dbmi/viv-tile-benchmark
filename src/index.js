@@ -8,7 +8,6 @@ async function timeRegions({ file, sources, regions }, iter) {
   // TODO: Shuffle sources
   for (const { url, format, tileSize, compression } of sources) {
 
-    const loader = await getLoader({ url, format });
     const { height: rasterHeight, width: rasterWidth } = loader.getRasterSize({ z: 0 })
     const extent = [0, 0, rasterWidth, rasterHeight];
 
@@ -19,6 +18,7 @@ async function timeRegions({ file, sources, regions }, iter) {
         for (const [height, width] of viewports) {
 
           // Compute the tiles needed for each region for a viewport size and zoom level.
+          const loader = await getLoader({ url, format });
           const tileCoords = getTileCoords({
             yCoord,
             xCoord,
