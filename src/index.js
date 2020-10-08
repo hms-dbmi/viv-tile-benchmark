@@ -8,7 +8,6 @@ async function timeRegions({ file, sources, regions }, iter) {
   // TODO: Shuffle sources
   for (const { url, format, tileSize, compression } of sources) {
 
-    const loader = await getLoader({ url, format });
     const { height: rasterHeight, width: rasterWidth } = loader.getRasterSize({ z: 0 })
     const extent = [0, 0, rasterWidth, rasterHeight];
 
@@ -28,8 +27,9 @@ async function timeRegions({ file, sources, regions }, iter) {
             tileSize,
             extent,
           });
+          const loader = await getLoader({ url, format });
           const queue = new PQueue({ concurrency: 10 });
-          const records = []
+          const records = [];
           for (const t of tileCoords) {
             queue.add(async () => {
               const [start, end] = await timeGetTile(loader, { ...t, loaderSelection });
