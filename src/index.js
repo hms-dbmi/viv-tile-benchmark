@@ -8,15 +8,14 @@ async function timeRegions({ file, sources, regions }, iter) {
   // TODO: Shuffle sources
   for (const { url, format, tileSize, compression } of sources) {
 
-    const { height: rasterHeight, width: rasterWidth } = loader.getRasterSize({ z: 0 })
-    const extent = [0, 0, rasterWidth, rasterHeight];
-
     for (const { id, yCoord, xCoord, zoom, viewports, numChannels } of regions) {
       for (const n of numChannels) {
         const loaderSelection = range(n).map(i => ({ channel: i }));
 
         for (const [height, width] of viewports) {
-
+          const loader = await getLoader({ url, format });
+          const { height: rasterHeight, width: rasterWidth } = loader.getRasterSize({ z: 0 })
+          const extent = [0, 0, rasterWidth, rasterHeight];
           // Compute the tiles needed for each region for a viewport size and zoom level.
           const tileCoords = getTileCoords({
             yCoord,
@@ -27,7 +26,6 @@ async function timeRegions({ file, sources, regions }, iter) {
             tileSize,
             extent,
           });
-          const loader = await getLoader({ url, format });
           const queue = new PQueue({ concurrency: 10 });
           const records = [];
           for (const t of tileCoords) {
