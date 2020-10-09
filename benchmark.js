@@ -48,8 +48,7 @@ function main() {
   const outfile = args[0];
   const flags = new Set(args.slice(1));
   const headless = !flags.delete('--no-headless');
-  const ignoreHTTPSErrors = flags.delete('--ignore-https-errors');
-  ignoreHTTPSErrors && flags.add('--ignore-https-errors');
+  const ignoreHTTPSErrors = flags.has("--ignore-https-errors");
   console.log("running with args: ", { headless, ignoreHTTPSErrors, args: [...flags] });
   run(outfile, { headless, ignoreHTTPSErrors, args: [...flags] });
 }
