@@ -65,9 +65,8 @@ async function timeRegions({ file, sources, regions }, iter) {
 async function main() {
   console.time('Run benchmark.')
   for (const img of images) {
-    for (let i = 0; i < ITERS; i++) {
-      await timeRegions(img, i);
-    }
+    const iter = window.location.href.split('?')[1].split('=')[1];
+    await timeRegions(img, iter);
   }
   console.timeEnd('Run benchmark.')
 }
