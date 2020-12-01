@@ -6,8 +6,8 @@
   "scripts": {
     "start": "webpack-dev-server --hot",
     "build": "webpack -p",
-    "bench:h1": "./benchmark.js chrome_http1.csv --disable-http2 --ignore-https-errors --no-headless",
-    "bench:h2": "./benchmark.js chrome_http2.csv --ignore-https-errors --no-headless",
+    "bench:h1": "./run_benchmark.sh chrome_http1.csv --disable-http2 --ignore-https-errors --no-headless",
+    "bench:h2": "./run_benchmark.sh chrome_http2.csv --ignore-https-errors --no-headless",
     "bench": "npm run build && npm run bench:h1 && npm run bench:h2"
   },
   "author": "Trevor James Manz",
