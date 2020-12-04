@@ -1,0 +1,201 @@
+---
+title: "Viv Benchmarks"
+subtitle: "Comparison of HTTP Protocol Versions, Image File Formats, and Tile Sizes"
+date: "9 October 2020"
+output: html_document
+---
+
+```{r include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+# Parse Data
+
+```{r message=FALSE}
+http2 = read_csv("chrome_http2.csv") %>% mutate(protocol = "http2")
+http1 = read_csv("chrome_http1.csv") %>% mutate(protocol = "http1")
+```
+
+# Merge and Calculate Additional Variables
+
+```{r warning=FALSE, message=FALSE}
+data = bind_rows(http1, http2) %>%
+  mutate(
+    viewport = paste(height, width, sep = 'x'),
+    tileTime = endTime - startTime,
+    # loading time normalized to account for tile size (relative to 256x256 tile size)
+    tileTimeNormalized = (endTime - startTime) / (tileSize**2 / 256**2),
+    # loading time per pixel across all channels
+    pixelTime = (endTime - startTime) / tileSize**2,
+    # loading time per pixel normalized to account for channel count
+    pixelTimeNormalized = (endTime - startTime) / (tileSize**2 * numChannels),
+  )
+```
+
+# View Loading Times
+
+A view is defined as a set of tiles needed to visualize a viewport for a specific region across all zoom levels with a set number of channels. Assuming negligible rendering times, the times shown here correspond to the aggregate wait times that a user would experience after navigating to the view and zooming across all zoom levels. 
+
+```{r warning=FALSE, message=FALSE}
+merged_data <- data %>%
+  # fix channel count
+  filter( numChannels==4 ) %>%
+  # group by protocol, format, regionId, viewport, tileSize, iteration
+  group_by( iter, protocol, format, regionId, viewport, tileSize, numChannels, zoom ) %>%
+  # compute statistics per view, i.e., for a given region id and viewport size
+  summarize(minStartTime=min(startTime), maxEndTime=max(endTime), tiles=n()) %>%
+  mutate(
+    viewTime = maxEndTime-minStartTime,
+    viewport = factor(viewport, levels=c('1920x1080', '1000x1000', '300x400'))
+  )
+
+plot <-
+  ggplot( merged_data ) +
+  aes( y=viewTime, x=format, fill=protocol ) +
+  geom_violin() +
+  facet_grid(cols=vars(tileSize), rows=vars(viewport)) +
+  scale_x_discrete(guide = guide_axis(angle = 45)) +
+  labs(
+    title="Time to Load all Tiles in View (4 channels)",
+    y="View Time (ms)",
+    x="Format",
+    fill="Protocol"
+  ) + 
+  theme_minimal()
+plot
+```
+
+# Sanity Checks
+
+## Correlation between Iteration and Tile Loading Times (4 channels)
+
+```{r warning=FALSE, message=FALSE}
+plot <- 
+  ggplot( data  %>% filter( numChannels==4 ) ) +
+  aes( x=as.factor(iter), y=tileTime ) +
+  geom_violin() +
+  facet_grid(rows=vars(tileSize),cols=vars(format), scales="free") +
+  scale_x_discrete(guide = guide_axis(angle = 45)) +
+  labs(
+    title="Time to Load Tile",
+    x="Iteration",
+    y="Tile Time (ms)"
+  ) +
+  theme_minimal()
+plot
+```
+
+## Correlation between Region and Tile Loading Times: Formats
+
+```{r warning=FALSE, message=FALSE}
+plot <- 
+  ggplot( data  %>% filter( numChannels==4 ) ) +
+  aes( x=as.factor(regionId), y=tileTime ) +
+  geom_violin() +
+  facet_grid(rows=vars(tileSize),cols=vars(format), scales="free") +
+  scale_x_discrete(guide = guide_axis(angle = 45)) +
+  labs(
+    title="Time to Load Tile",
+    x="Region",
+    y="Tile Time (ms)"
+  ) +
+  theme_minimal()
+plot
+```
+
+## Correlation between Region and Tile Loading Times: Protocols
+
+```{r warning=FALSE, message=FALSE}
+plot <- 
+  ggplot( data  %>% filter( numChannels==4 ) ) +
+  aes( x=as.factor(regionId), y=tileTime ) +
+  geom_violin() +
+  facet_grid(rows=vars(tileSize),cols=vars(protocol), scales="free") +
+  scale_x_discrete(guide = guide_axis(angle = 45)) +
+  labs(
+    title="Time to Load Tile",
+    x="Region",
+    y="Tile Time (ms)"
+  ) +
+  theme_minimal()
+plot
+```
+
+## Correlation between Zoom Level and Tile Loading Times
+
+```{r warning=FALSE, message=FALSE}
+plot <- 
+  ggplot( data  %>% filter( numChannels==4 ) ) +
+  aes( x=as.factor(zoom), y=tileTime ) +
+  geom_boxplot() +
+  facet_grid(rows=vars(tileSize),cols=vars(format), scales="free") +
+  scale_x_discrete(guide = guide_axis(angle = 45)) +
+  labs(
+    title="Time to Load Tile",
+    x="Zoom Level",
+    y="Tile Time (ms)"
+  ) +
+  theme_minimal()
+plot
+```
+
+```{r warning=FALSE, message=FALSE}
+plot <- 
+  ggplot( data  %>% filter( numChannels==4 ) ) +
+  aes( x=as.factor(zoom), y=tileTime ) +
+  geom_point() +
+  facet_grid(rows=vars(tileSize), cols=vars(format), scales="free") +
+  scale_x_discrete(guide = guide_axis(angle = 45)) +
+  labs(
+    title="Time to Load Tile",
+    x="Zoom Level",
+    y="Tile Time (ms)"
+  ) +
+  theme_minimal()
+plot
+```
+
+
+# In-Depth Comparison of HTTP Protocol Versions
+
+## Comparison of Individual Tile Loading Times between HTTP1 and HTTP2
+```{r}
+merged_data <- data %>%
+  filter( regionId == "Zoomed In" ) %>%
+  filter( format == "zarr" ) %>%  
+  filter( tileSize == 256 ) %>%    
+  filter( numChannels == 4 ) %>%  
+  group_by(iter,format,numChannels,tileSize,regionId,zoom,viewport,tileId) %>%
+  arrange(protocol,.by_group=TRUE) %>%
+  summarize(http1Time=first(tileTime), http2Time=last(tileTime))
+
+plot <- 
+  ggplot( merged_data ) +
+  aes( x=http1Time, y=http2Time, color=as.factor(iter), shape=format ) +
+  geom_point( alpha=0.3 ) +
+  coord_fixed() +
+  facet_grid(rows=vars(tileSize), cols=vars(zoom, regionId, format)) +
+  scale_x_continuous(guide = guide_axis(angle = 90)) +
+  theme_minimal()
+plot
+```
+
+# In-Depth Comparison of Image Formats
+
+## Comparison of Individual Tile Loading Times between OME-TIFF and Zarr
+```{r}
+merged_data <- data %>%
+  group_by(iter,protocol,numChannels,tileSize,regionId,zoom,viewport,tileId) %>%
+  arrange(format,.by_group=TRUE) %>%
+  summarize(omeTiffTime=first(tileTime), zarrTime=last(tileTime))
+
+plot <- 
+  ggplot( merged_data ) +
+  aes( x=omeTiffTime, y=zarrTime, color=regionId, shape=protocol ) +
+  geom_point() +
+  facet_grid(rows=vars(tileSize), cols=vars(regionId, protocol), scales="free") +
+  scale_x_continuous(guide = guide_axis(angle = 90)) +
+  theme_minimal()
+plot
+```
